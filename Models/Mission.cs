@@ -7,9 +7,9 @@ namespace MosadAPIServer.Models
         [Key]
         public int Id { get; set; }
 
-        public int AgentId { get; set; }
+        public Agent AgentId { get; set; }
 
-        public int TargetId { get; set; }
+        public Target TargetId { get; set; }
 
         public float? TimeLeft { get; set; }
 
