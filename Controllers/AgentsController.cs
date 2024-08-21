@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MosadAPIServer.Models;
 using MosadAPIServer.Services;
+using System.Text.Json;
 
 namespace MosadAPIServer.Controllers
 {
@@ -20,7 +22,7 @@ namespace MosadAPIServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAgent(Agent agent)
         {
-            
+
             _context.Agents.Add(agent);
             await _context.SaveChangesAsync();
             return StatusCode(
@@ -41,7 +43,7 @@ namespace MosadAPIServer.Controllers
             );
         }
         //-- Update Location --
-        [HttpPut("pin/{id}")]
+        [HttpPut("{id}/pin")]
         public async Task<IActionResult> UpdateLocation(int id, Location location)
         {
             Agent agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == id);
@@ -61,6 +63,62 @@ namespace MosadAPIServer.Controllers
                 }
             );
         }
+        //--Update Direction--
+        [HttpPut("{id}/move")]
+        public async Task<IActionResult> UpdateDirection(int id, [FromBody] Dictionary<string, string> direction)
+        {
+            Agent agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == id);
+
+            string stringDirection = direction["direction"];
+
+            VerifyingLocation(agent, stringDirection);
+            _context.Update(agent);
+
+
+            await _context.SaveChangesAsync();
+            return StatusCode(
+                StatusCodes.Status200OK,
+                new
+                {
+                }
+            );
+        }
+        //Help function
+        public void VerifyingLocation(Agent agent ,string direction)
+        {
+            switch (direction)
+            {
+                case "nw":
+                    agent.Location.X -= 1;
+                    agent.Location.Y -= 1;
+                    break;
+                case "n":
+                    agent.Location.X -= 1;
+                    break;
+                case "ne":
+                    agent.Location.X -= 1;
+                    agent.Location.Y += 1;
+                    break;
+                case "w":
+                    agent.Location.Y -= 1;
+                    break;
+                case "e":
+                    agent.Location.Y += 1;
+                    break;
+                case "sw":
+                    agent.Location.X += 1;
+                    agent.Location.Y -= 1;
+                    break;
+                case "s":
+                    agent.Location.X += 1;
+                    break;
+                case "se":
+                    agent.Location.X += 1;
+                    agent.Location.Y += 1;
+                    break;
+            }
+        }
 
     }
 }
+
