@@ -11,7 +11,7 @@ namespace MosadAPIServer.Models
 
         public Target TargetId { get; set; }
 
-        public float? TimeLeft { get; set; }
+        public double? TimeLeft { get; set; }
 
         public string? ExecutionTime { get; set; }
 
