@@ -1,4 +1,6 @@
-﻿namespace MosadAPIServer.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MosadAPIServer.Models
 {
     public class Location
     {
