@@ -13,5 +13,19 @@ namespace MosadAPIServer.Services
         public DbSet<Agent> Agents { get; set; }
         public DbSet<Target> Targets { get; set; }
         public DbSet<Mission> Missions { get; set; }
+
+        // לקחתי את הרעיון לקוד הבא מהאתר שהבאתי כאן
+        // https://www.endyourif.com/the-entity-type-entityname-requires-a-primary-key-heres-how-to-fix-it/
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Agent>()
+                .OwnsOne(agent => agent.Location);
+            modelBuilder.Entity<Target>()
+                .OwnsOne(agent => agent.Location);
+            modelBuilder.Entity<Mission>()
+                .OwnsOne(agent => agent.Status);
+
+        }
+
     }
 }
