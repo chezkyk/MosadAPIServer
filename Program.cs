@@ -1,5 +1,9 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.EntityFrameworkCore;
+using MosadAPIServer.Services;
 
+var builder = WebApplication.CreateBuilder(args);
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<MosadDbContext>(options => options.UseSqlServer(connectionString));
 // Add services to the container.
 
 builder.Services.AddControllers();

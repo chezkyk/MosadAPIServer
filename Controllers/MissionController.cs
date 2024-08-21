@@ -7,5 +7,11 @@ namespace MosadAPIServer.Controllers
     [ApiController]
     public class MissionController : ControllerBase
     {
+        private readonly MissionController _context;
+
+        public MissionController(MissionController context)
+        {
+            this._context = context;
+        }
     }
 }
