@@ -15,5 +15,10 @@ namespace MosadAPIServer.Services
         {
             return Math.Sqrt(Math.Pow(xt - xa, 2) + Math.Pow(yt - ya, 2));
         }
+        public static void UpdateMissionTime(Mission mission)
+        {
+            mission.TimeLeft = CalculateTimeLeft(mission.AgentId, mission.TargetId);
+            mission.ExecutionTime += mission.TimeLeft;
+        }
     }
 }
