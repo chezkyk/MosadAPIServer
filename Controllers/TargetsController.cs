@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MosadAPIServer.Models;
 using MosadAPIServer.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace MosadAPIServer.Controllers
 {
@@ -20,7 +21,7 @@ namespace MosadAPIServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTarget(Target target)
         {
-            
+            target.Status = TargetStatus.Status.Alive.ToString();
             _context.Targets.Add(target);
             await _context.SaveChangesAsync();
             return StatusCode(
@@ -28,14 +29,15 @@ namespace MosadAPIServer.Controllers
             new { target = target.Id });
         }
         // --Get all targets--
-        public IActionResult GetAllTargets()
+        [HttpGet]
+        public async Task<IActionResult> GetAllTargets()
         {
-
+            var targets = await _context.Targets.ToListAsync();
             return StatusCode(
                 StatusCodes.Status200OK,
                 new
                 {
-                    targets = _context.Targets.ToArray()// בהמשך לשנות לפי דרישה
+                    targets = targets// בהמשך לשנות לפי דרישה
                 }
             );
         }
@@ -51,6 +53,21 @@ namespace MosadAPIServer.Controllers
             }
             target.Location.X = location.X;
             target.Location.Y = location.Y;
+
+            var agentArray = await _context.Agents.ToArrayAsync();
+
+            foreach (Agent agent in agentArray)
+            {
+                if (agent.Status == AgentStatus.Status.NotActiv.ToString())
+                {
+                    if (MissionService.IfMission(agent, target))
+                    {
+                        Mission mission = MissionService.CreateMission(agent, target);
+                        _context.Missions.Add(mission);
+                        break;
+                    }
+                }
+            }
             _context.Update(target);
             await _context.SaveChangesAsync();
             return StatusCode(

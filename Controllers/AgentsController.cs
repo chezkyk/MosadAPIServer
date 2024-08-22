@@ -13,7 +13,7 @@ namespace MosadAPIServer.Controllers
     public class AgentsController : ControllerBase
     {
         private readonly MosadDbContext _context;
-
+        // יצירת משתנה של DB תוך כדי שמירה על עקרון DI
         public AgentsController(MosadDbContext context)
         {
             this._context = context;
@@ -22,23 +22,25 @@ namespace MosadAPIServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAgent(Agent agent)
         {
-
-            _context.Agents.Add(agent);
-            await _context.SaveChangesAsync();
+            // עדכון סטטוס סוכן שנוצר ללא פעיל
+            agent.Status = AgentStatus.Status.NotActiv.ToString();
+            _context.Agents.Add(agent);// הוספת הסוכן ל DB
+            await _context.SaveChangesAsync();// שמירת השינויים
             return StatusCode(
             StatusCodes.Status201Created,
             new { agent = agent.Id });
         }
         //--Get All Agents
         [HttpGet]
-        public IActionResult GetAllAttacks()
+        public async Task<IActionResult> GetAllAgents()
         {
-
+            // הכנסת LIST של סוכנים לתוך המשתנה agent
+            var agents = await _context.Agents.ToListAsync();
             return StatusCode(
                 StatusCodes.Status200OK,
                 new
                 {
-                    attacks = _context.Agents.ToArray()
+                    agents = agents
                 }
             );
         }
@@ -54,6 +56,20 @@ namespace MosadAPIServer.Controllers
             }
             agent.Location.X = location.X;
             agent.Location.Y = location.Y;
+
+            var targetList = await _context.Targets.ToListAsync();
+
+            foreach (Target target in targetList)
+            {
+                if (target.Status == TargetStatus.Status.Alive.ToString())
+                {
+                    if (MissionService.IfMission(agent, target) && await IfNotTarget(target.Id))
+                    {
+                        Mission mission = MissionService.CreateMission(agent, target);
+                        _context.Missions.Add(mission);
+                    }
+                }
+            }
             _context.Update(agent);
             await _context.SaveChangesAsync();
             return StatusCode(
@@ -84,6 +100,16 @@ namespace MosadAPIServer.Controllers
             );
         }
         //Help function
+        public async Task<bool> IfNotTarget(int? id)
+        {
+            Mission mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
+            if (mission == null || mission.Status == MissionStatus.Status.Offer.ToString())
+            {
+                return true;
+            }
+            return false;
+
+        }
         public void VerifyingLocation(Agent agent ,string direction)
         {
             switch (direction)
