@@ -22,32 +22,42 @@ namespace MosadAPIServer.Controllers
         [HttpPost("update")]
         public async Task<IActionResult> Update()
         {
-            var list = await _context.Missions.ToListAsync();
+            var missions = await _context.Missions.ToListAsync();
 
-
-
-            foreach (var mission in list)
+            foreach (var mission in missions)
             {
-                var agent = mission.AgentId;
-                var target = mission.TargetId;
+                var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == mission.AgentId.Id);
+                var target = await _context.Targets.FirstOrDefaultAsync(t => t.Id == mission.TargetId.Id);
 
-                var comand = CreateCommeandForAgent(agent, target);
+                if (agent == null || target == null)
+                {
+                    return BadRequest("Agent or Target not found.");
+                }
+
+                var command = CreateCommeandForAgent(agent, target);
+
+                // Check if the agent has reached the target location
                 if (agent.Location.X == target.Location.X && agent.Location.Y == target.Location.Y)
                 {
-                    mission.TargetId.Status = TargetStatus.Status.Dead.ToString();
-                    mission.AgentId.Status = AgentStatus.Status.NotActiv.ToString();
+                    target.Status = TargetStatus.Status.Dead.ToString();
+                    agent.Status = AgentStatus.Status.NotActiv.ToString();
                     mission.TimeLeft = 0;
                     mission.ExecutionTime += 0.2;
                     mission.Status = MissionStatus.Status.Finish.ToString();
                     break;
                 }
-                agent = VerifyingLocation(agent, comand);
+
+                agent = VerifyingLocation(agent, command);
                 mission.TimeLeft = MissionService.CalculateTimeLeft(agent, target);
                 mission.ExecutionTime += 0.2;
             }
-            return StatusCode(StatusCodes.Status200OK,new{});
 
+            await _context.SaveChangesAsync();
+
+            return StatusCode(StatusCodes.Status200OK, new { });
         }
+
+
         private static Agent VerifyingLocation(Agent agent, string direction)
         {
             switch (direction)
@@ -99,10 +109,10 @@ namespace MosadAPIServer.Controllers
         }
         //-- Update status
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
+        public async Task<IActionResult> UpdateStatus(int id, StatusJson status)
         {
             Mission mission = await _context.Missions.FirstOrDefaultAsync(m => m.Id == id);
-            mission.Status = status;
+            mission.Status = status.ToString();
             _context.Update(mission);
             await _context.SaveChangesAsync();
             return StatusCode(

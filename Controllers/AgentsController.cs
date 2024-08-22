@@ -100,7 +100,7 @@ namespace MosadAPIServer.Controllers
             );
         }
         //Help function
-        public async Task<bool> IfNotTarget(int? id)
+        private async Task<bool> IfNotTarget(int? id)
         {
             Mission mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
             if (mission == null || mission.Status == MissionStatus.Status.Offer.ToString())
