@@ -12,8 +12,9 @@ namespace MosadAPIServer.Models
         public string Position { get; set; }
         
         public string PhotoUrl { get; set; }
-        [Range(0, 1001, ErrorMessage = "The value must be greater than 0 or smaller then 1000")]
+        [Range(1, 1001, ErrorMessage = "The value must be greater than 1 or smaller then 1000")]
         public Location? Location { get; set; }
-       
+        public string? Status { get; set; }
+
     }
 }

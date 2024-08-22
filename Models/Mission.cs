@@ -13,9 +13,9 @@ namespace MosadAPIServer.Models
 
         public double? TimeLeft { get; set; }
 
-        public string? ExecutionTime { get; set; }
+        public double? ExecutionTime { get; set; }
 
-        public MissionStatus? Status { get; set; }
+        public string? Status { get; set; }
 
 
     }
