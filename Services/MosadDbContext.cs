@@ -22,8 +22,8 @@ namespace MosadAPIServer.Services
                 .OwnsOne(agent => agent.Location);
             modelBuilder.Entity<Target>()
                 .OwnsOne(agent => agent.Location);
-            modelBuilder.Entity<Mission>()
-                .OwnsOne(agent => agent.Status);
+            //modelBuilder.Entity<Mission>()
+            //    .OwnsOne(agent => agent.Status);
 
         }
 
