@@ -5,6 +5,9 @@ var builder = WebApplication.CreateBuilder(args);
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<MosadDbContext>(options => options.UseSqlServer(connectionString));
 // Add services to the container.
+builder.Services.AddScoped<AgentService>();
+builder.Services.AddScoped<TargetService>();
+builder.Services.AddScoped<MissionService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
