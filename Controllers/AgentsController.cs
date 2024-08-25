@@ -4,38 +4,38 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MosadAPIServer.Models;
 using MosadAPIServer.Services;
+using MosadAPIServer.Statuses;
 using System.Text.Json;
 
 namespace MosadAPIServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class AgentsController : ControllerBase
     {
+        private readonly AgentService _agentService;
+        private readonly MissionService _missionService;
         private readonly MosadDbContext _context;
-        // יצירת משתנה של DB תוך כדי שמירה על עקרון DI
-        public AgentsController(MosadDbContext context)
+
+        public AgentsController(AgentService agentService, MissionService missionService, MosadDbContext context)
         {
-            this._context = context;
+            _agentService = agentService;
+            _missionService = missionService;
+            _context = context;
         }
         //--Create Agent--
         [HttpPost]
         public async Task<IActionResult> CreateAgent(Agent agent)
         {
-            // עדכון סטטוס סוכן שנוצר ללא פעיל
-            agent.Status = AgentStatus.Status.NotActiv.ToString();
-            _context.Agents.Add(agent);// הוספת הסוכן ל DB
-            await _context.SaveChangesAsync();// שמירת השינויים
-            return StatusCode(
-            StatusCodes.Status201Created,
-            new { agent = agent.Id });
+            var createdAgent = await _agentService.CreateAgent(agent);
+            return StatusCode(StatusCodes.Status201Created, agent);
         }
         //--Get All Agents
         [HttpGet]
         public async Task<IActionResult> GetAllAgents()
         {
             // הכנסת LIST של סוכנים לתוך המשתנה agent
-            var agents = await _context.Agents.ToListAsync();
+            var agents = await _agentService.GetAllAgents();
             return StatusCode(
                 StatusCodes.Status200OK,
                 new
@@ -48,102 +48,39 @@ namespace MosadAPIServer.Controllers
         [HttpPut("{id}/pin")]
         public async Task<IActionResult> UpdateLocation(int id, Location location)
         {
-            Agent agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == id);
-            // הבדיקה הבאה נצרכת רק בפעם הראשונה שאני מעדכן את המיקום.
-            if (agent.Location == null)
-            {
-                agent.Location = new Location();
-            }
-            agent.Location.X = location.X;
-            agent.Location.Y = location.Y;
+            var agent = await _agentService.UpdateLocation(id, location);
+            var targets = await _context.Targets.ToListAsync();
 
-            var targetList = await _context.Targets.ToListAsync();
-
-            foreach (Target target in targetList)
+            foreach (var target in targets)
             {
                 if (target.Status == TargetStatus.Status.Alive.ToString())
                 {
                     if (MissionService.IfMission(agent, target) && await IfNotTarget(target.Id))
                     {
-                        Mission mission = MissionService.CreateMission(agent, target);
+                        var mission = MissionService.CreateMission(agent, target);
                         _context.Missions.Add(mission);
                     }
                 }
             }
-            _context.Update(agent);
+
             await _context.SaveChangesAsync();
-            return StatusCode(
-                StatusCodes.Status200OK,
-                new
-                {
-                }
-            );
+            return Ok();
         }
         //--Update Direction--
         [HttpPut("{id}/move")]
         public async Task<IActionResult> UpdateDirection(int id, [FromBody] Dictionary<string, string> direction)
         {
-            Agent agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == id);
-
-            string stringDirection = direction["direction"];
-
-            VerifyingLocation(agent, stringDirection);
-            _context.Update(agent);
-
-
-            await _context.SaveChangesAsync();
-            return StatusCode(
-                StatusCodes.Status200OK,
-                new
-                {
-                }
-            );
+            await _agentService.UpdateDirection(id, direction["direction"]);
+            return Ok();
         }
         //Help function
         private async Task<bool> IfNotTarget(int? id)
         {
-            Mission mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
-            if (mission == null || mission.Status == MissionStatus.Status.Offer.ToString())
-            {
-                return true;
-            }
-            return false;
+            var mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
+            return mission == null || mission.Status == MissionStatus.Status.Offer.ToString();
 
         }
-        public void VerifyingLocation(Agent agent ,string direction)
-        {
-            switch (direction)
-            {
-                case "nw":
-                    agent.Location.X -= 1;
-                    agent.Location.Y -= 1;
-                    break;
-                case "n":
-                    agent.Location.X -= 1;
-                    break;
-                case "ne":
-                    agent.Location.X -= 1;
-                    agent.Location.Y += 1;
-                    break;
-                case "w":
-                    agent.Location.Y -= 1;
-                    break;
-                case "e":
-                    agent.Location.Y += 1;
-                    break;
-                case "sw":
-                    agent.Location.X += 1;
-                    agent.Location.Y -= 1;
-                    break;
-                case "s":
-                    agent.Location.X += 1;
-                    break;
-                case "se":
-                    agent.Location.X += 1;
-                    agent.Location.Y += 1;
-                    break;
-            }
-        }
+        
 
     }
 }
