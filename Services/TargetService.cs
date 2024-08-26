@@ -41,6 +41,23 @@ namespace MosadAPIServer.Services
             await _context.SaveChangesAsync();
             return target;
         }
+        public async Task FindMissions(Target target)
+        {
+            var agentslist = await _context.Agents.ToArrayAsync();
+
+            foreach(Agent agent in agentslist)
+            {
+                if (agent.Status == AgentStatus.Status.NotActiv.ToString())
+                {
+                    if (MissionService.IfMission(agent, target))
+                    {
+                        Mission mission = MissionService.CreateMission(agent, target); //יצירת משימה
+                        _context.Missions.Add(mission); //הוספה למסד נתונים
+                        _context.SaveChanges();
+                    }
+                }
+            }
+        }
 
         public async Task<Target> UpdateDirection(int id, string direction)
         {

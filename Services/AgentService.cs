@@ -44,23 +44,21 @@ namespace MosadAPIServer.Services
             agent.Location.X = location.X;//  עדכון קאורדינטת X
             agent.Location.Y = location.Y;// עדכון קאורדינטת Y
 
-            await CreateMissions(agent);
             _context.Update(agent);// הוספת השינויים ל DB
             await _context.SaveChangesAsync();// שמירת השינויים
             return agent;
         }
         // פונקציה זאת מעדכנת כיוון 
-        public async Task<Agent> UpdateDirection(int id, string direction)
+        public async Task<Agent> UpdateDirection(Agent agent, string direction)
         {
-            // למשתנה agent ייכנס הסוכן הספציפי עם המזהה שהגיע בחתימת הפונקציה
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == id);
+            
             //בדיקת ולידטציה של מיקום
             LocationService.VerifyingLocation(agent.Location, direction);
             _context.Update(agent);// הוספת השינויים ל DB
             await _context.SaveChangesAsync();// שמירת השינויים
             return agent;
         }
-        public async Task CreateMissions(Agent agent)
+        public async Task FindMissions(Agent agent)
         {
             var list = await _context.Targets.ToArrayAsync();
                                                                
@@ -80,8 +78,17 @@ namespace MosadAPIServer.Services
         }
 		public async Task<bool> IfNotTarget(int? id)
 		{
-			var mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
-			return mission == null || mission.Status == MissionStatus.Status.Offer.ToString();
+            // שולף ךתוך מערך את כל המשימות שהמטרה נמצאת שם
+			var missions = await _context.Missions.Where(x => x.TargetId.Id == id).ToListAsync();
+            foreach (var item in missions)//ריצה על כל איברי המערך
+            {
+                // בדיקה עם הוא נמצא כבר במשימה שנמצאת כרגע בפעולה
+                if (item.Status == MissionStatus.Status.InMission.ToString())
+                {
+                    return false;
+                }
+            }
+            return true;
 
 		}
 
