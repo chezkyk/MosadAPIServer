@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MosadAPIServer.Middleware.Global;
+using MosadAPIServer.Middleware.Login;
 using MosadAPIServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +10,7 @@ builder.Services.AddDbContext<MosadDbContext>(options => options.UseSqlServer(co
 builder.Services.AddScoped<AgentService>();
 builder.Services.AddScoped<TargetService>();
 builder.Services.AddScoped<MissionService>();
-
+builder.Services.AddScoped<LocationService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -26,7 +28,17 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+//
+//var myRouts = new[] { "/agents" };
+//app.UseMiddleware<GlobalLoginMiddleware>();
+//app.UseWhen(
+//        context => myRouts.Any(rout => context.Request.Path.StartsWithSegments(rout)),
+//    appBuilder =>
+//    {
+//        appBuilder.UseMiddleware<LoginMiddleware>();
+//        appBuilder.UseMiddleware<JwtValidationMiddleware>();
+//    });
+////
 app.MapControllers();
 
 app.Run();
