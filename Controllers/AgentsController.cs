@@ -40,22 +40,10 @@ namespace MosadAPIServer.Controllers
         }
         //-- Update Location --
         [HttpPut("{id}/pin")]
-        public async Task<IActionResult> UpdateLocation(int id, Location location)
+        public async Task<IActionResult> UpdateLocation(int id,[FromBody] Location location)
         {
             var agent = await _agentService.UpdateLocation(id, location);
-            var targets = await _context.Targets.ToListAsync();
-
-            foreach (var target in targets)
-            {
-                if (target.Status == TargetStatus.Status.Alive.ToString())
-                {
-                    if (MissionService.IfMission(agent, target) && await _agentService.IfNotTarget(target.Id))
-                    {
-                        var mission = MissionService.CreateMission(agent, target);
-                        _context.Missions.Add(mission);
-                    }
-                }
-            }
+            await _agentService.FindMissions(agent);
 
             await _context.SaveChangesAsync();
             return Ok();
@@ -64,7 +52,10 @@ namespace MosadAPIServer.Controllers
         [HttpPut("{id}/move")]
         public async Task<IActionResult> UpdateDirection(int id, [FromBody] Dictionary<string, string> direction)
         {
-            await _agentService.UpdateDirection(id, direction["direction"]);
+            // למשתנה agent ייכנס הסוכן הספציפי עם המזהה שהגיע בחתימת הפונקציה
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == id);
+            await _agentService.UpdateDirection(agent, direction["direction"]);
+            await _agentService.FindMissions(agent);
             return Ok();
         }
 

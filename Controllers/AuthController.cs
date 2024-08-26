@@ -63,7 +63,7 @@ namespace MosadAPIServer.Controllers
 
             await _context.SaveChangesAsync();
 
-            if (CheckeDataInDB(userDetails.Username, userDetails.Password))
+            if (CheckeDataInDB(userDetails.Username))
             {
 
                 // getting the user (requester) IP
@@ -76,24 +76,24 @@ namespace MosadAPIServer.Controllers
             return StatusCode(StatusCodes.Status401Unauthorized,
                     new { error = "invalid credentials" });
         }
-        public bool CheckeDataInDB(string username, string password)
+        public bool CheckeDataInDB(string username)
         {
-            var user = _context.users.FirstOrDefault(u => u.Username == username && u.Password == password);
+            var user = _context.users.FirstOrDefault(u => u.Username == username);
             if (user == null) { return false; }
             return true;
         }
-        [HttpPost]
-        public async Task<IActionResult> CreateUser(UserDetails user)
-        {
-            int status = StatusCodes.Status200OK;
-            var allUsers = await this._context.users.ToListAsync();
-            _context.users.Add(user);
-            await _context.SaveChangesAsync();
+        //[HttpPost]
+        //public async Task<IActionResult> CreateUser(UserDetails user)
+        //{
+        //    int status = StatusCodes.Status200OK;
+        //    var allUsers = await this._context.users.ToListAsync();
+        //    _context.users.Add(user);
+        //    await _context.SaveChangesAsync();
 
-            return StatusCode(200
-                , new { message = user }
+        //    return StatusCode(200
+        //        , new { message = user }
 
-                );
-        }
+        //        );
+        //}
     }
 }

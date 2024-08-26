@@ -26,7 +26,6 @@ namespace MosadAPIServer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTarget(Target target)
         {
-            target.Status = TargetStatus.Status.Alive.ToString();
             var createdTarget = await _targetService.CreateTarget(target);
             return StatusCode(StatusCodes.Status201Created, target);
         }
@@ -42,30 +41,19 @@ namespace MosadAPIServer.Controllers
         public async Task<IActionResult> UpdateLocation(int id, Location location)
         {
             var target = await _targetService.UpdateLocation(id, location);
-            var agents = await _context.Agents.ToArrayAsync();
-
-            foreach (var agent in agents)
-            {
-                if (agent.Status == AgentStatus.Status.NotActiv.ToString())
-                {
-                    if (MissionService.IfMission(agent, target))
-                    {
-                        var mission = MissionService.CreateMission(agent, target);
-                        _context.Missions.Add(mission);
-                        break;
-                    }
-                }
-            }
-
-            await _context.SaveChangesAsync();
+            _targetService.FindMissions(target);
+           
             return Ok();
         }
         //--Update Direction--
         [HttpPut("{id}/move")]
         public async Task<IActionResult> UpdateDirection(int id, [FromBody] Dictionary<string, string> direction)
         {
+            var target = await _context.Targets.FirstOrDefaultAsync(t => t.Id == id);
             await _targetService.UpdateDirection(id, direction["direction"]);
+            await _targetService.FindMissions(target);
             return Ok();
+
         }
         //returns how alive targets is
         [HttpGet("SumOfAliveTargets")]

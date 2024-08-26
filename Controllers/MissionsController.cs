@@ -41,7 +41,11 @@ namespace MosadAPIServer.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStatus(int id)
         {
-            await _missionService.UpdateMissionStatus(id);
+            var mission = await _missionService.UpdateMissionStatus(id);
+            if (mission == null)
+            {
+                return BadRequest(400);
+            }
             return Ok();
 
         }
