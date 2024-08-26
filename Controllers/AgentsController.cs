@@ -49,7 +49,7 @@ namespace MosadAPIServer.Controllers
             {
                 if (target.Status == TargetStatus.Status.Alive.ToString())
                 {
-                    if (MissionService.IfMission(agent, target) && await IfNotTarget(target.Id))
+                    if (MissionService.IfMission(agent, target) && await _agentService.IfNotTarget(target.Id))
                     {
                         var mission = MissionService.CreateMission(agent, target);
                         _context.Missions.Add(mission);
@@ -96,7 +96,7 @@ namespace MosadAPIServer.Controllers
             {
                 foreach (var item in targetsList)
                 {
-                    if (MissionService.IfMission(notActiveAgents[i], item) && await IfNotTarget(item.Id))
+                    if (MissionService.IfMission(notActiveAgents[i], item) && await _agentService.IfNotTarget(item.Id))
                     {
 
                         goodTargetscount++;
@@ -115,12 +115,7 @@ namespace MosadAPIServer.Controllers
 
 
         //Help function
-        private async Task<bool> IfNotTarget(int? id)
-        {
-            var mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
-            return mission == null || mission.Status == MissionStatus.Status.Offer.ToString();
-
-        }
+        
     }
 }
 
