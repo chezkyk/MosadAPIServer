@@ -36,13 +36,7 @@ namespace MosadAPIServer.Controllers
         {
             // הכנסת LIST של סוכנים לתוך המשתנה agent
             var agents = await _agentService.GetAllAgents();
-            return StatusCode(
-                StatusCodes.Status200OK,
-                new
-                {
-                    agents = agents
-                }
-            );
+            return StatusCode(StatusCodes.Status200OK, agents);
         }
         //-- Update Location --
         [HttpPut("{id}/pin")]
@@ -73,6 +67,53 @@ namespace MosadAPIServer.Controllers
             await _agentService.UpdateDirection(id, direction["direction"]);
             return Ok();
         }
+
+        //returns how active many agents is
+        [HttpGet("SumOfActiveAgents")]
+        public async Task<IActionResult> SumOfActiveAgents()
+        {
+            var activeAgentsCount = await _context.Agents.Where(agent => agent.Status == AgentStatus.Status.Active.ToString()).CountAsync();
+            return Ok(activeAgentsCount);
+        }
+        //returns how not active many agents is
+        [HttpGet("SumOfNotActiveAgents")]
+        public async Task<IActionResult> SumOfNotActiveAgents()
+        {
+            var notActiveAgentsCount = await _context.Agents.Where(agent => agent.Status == AgentStatus.Status.NotActiv.ToString()).CountAsync();
+            return Ok(notActiveAgentsCount);
+        }
+        //
+        [HttpGet("SumOfGoodActiveAgents")]
+        public async Task<IActionResult> SumOfGoodActiveAgents()
+        {
+            var notActiveAgents = await _context.Agents
+                .Where(agent => agent.Status == AgentStatus.Status.NotActiv.ToString())
+                .ToListAsync();
+            var targetsList = await _context.Targets.ToListAsync();
+            var goodTargetscount = 0;
+            List<Agent> goodActiveList = new List<Agent>();
+            for (int i = 0; i < notActiveAgents.Count(); i++)
+            {
+                foreach (var item in targetsList)
+                {
+                    if (MissionService.IfMission(notActiveAgents[i], item) && await IfNotTarget(item.Id))
+                    {
+
+                        goodTargetscount++;
+                    }
+                }
+                if (goodTargetscount != 0)
+                {
+
+                    goodActiveList.Add(notActiveAgents[i]);
+                }
+            }
+            return StatusCode(200, new { goodActiveList = goodActiveList.Count(), goodTargetscount = goodTargetscount });
+        }
+
+
+
+
         //Help function
         private async Task<bool> IfNotTarget(int? id)
         {
@@ -80,8 +121,9 @@ namespace MosadAPIServer.Controllers
             return mission == null || mission.Status == MissionStatus.Status.Offer.ToString();
 
         }
-        
-
     }
 }
+
+
+
 

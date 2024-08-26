@@ -35,7 +35,7 @@ namespace MosadAPIServer.Controllers
         public async Task<IActionResult> GetAllTargets()
         {
             var targets = await _targetService.GetAllTargets();
-            return Ok(new { targets = targets });
+            return StatusCode(StatusCodes.Status200OK, targets);
         }
         //-- Update Location --
         [HttpPut("{id}/pin")]
@@ -67,6 +67,19 @@ namespace MosadAPIServer.Controllers
             await _targetService.UpdateDirection(id, direction["direction"]);
             return Ok();
         }
-        
+        //returns how alive targets is
+        [HttpGet("SumOfAliveTargets")]
+        public async Task<IActionResult> SumOfAliveTargets()
+        {
+            var aliveTargetsCount = await _context.Targets.Where(target => target.Status == TargetStatus.Status.Alive.ToString()).CountAsync();
+            return Ok(aliveTargetsCount);
+        }
+        //returns how dead targets is
+        [HttpGet("SumOfDeadTargets")]
+        public async Task<IActionResult> SumOfDeadTargets()
+        {
+            var deadTargetsCount = await _context.Targets.Where(target => target.Status == TargetStatus.Status.Dead.ToString()).CountAsync();
+            return Ok(deadTargetsCount);
+        }
     }
 }
