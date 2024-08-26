@@ -78,6 +78,12 @@ namespace MosadAPIServer.Services
             }
             return;
         }
+		public async Task<bool> IfNotTarget(int? id)
+		{
+			var mission = await _context.Missions.FirstOrDefaultAsync(x => x.TargetId.Id == id);
+			return mission == null || mission.Status == MissionStatus.Status.Offer.ToString();
+
+		}
 
 
 
@@ -88,5 +94,5 @@ namespace MosadAPIServer.Services
 
 
 
-    }
+	}
 }
