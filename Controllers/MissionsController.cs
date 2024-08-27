@@ -21,12 +21,15 @@ namespace MosadAPIServer.Controllers
             _context = context;
         }
 
+        // 
         [HttpPost("update")]
+
         public async Task<IActionResult> Update()
         {
             await _missionService.UpdateMissions();
             return Ok();
         }
+
 
         //--Get All Missions
         [HttpGet]
@@ -36,6 +39,7 @@ namespace MosadAPIServer.Controllers
             var missions = await _missionService.GetAllMissions();
             return Ok(missions);
         }
+
 
         //-- Update status
         [HttpPut("{id}")]
@@ -49,6 +53,8 @@ namespace MosadAPIServer.Controllers
             return Ok();
 
         }
+
+
         //returns how many offer missions is
         [HttpGet("SumOfOfferMissions")]
         public async Task<IActionResult> SumOfOfferMissions()
@@ -56,6 +62,8 @@ namespace MosadAPIServer.Controllers
             var offerMissionsCount = await  _context.Missions.Where(mission => mission.Status == MissionStatus.Status.Offer.ToString()).CountAsync();
             return Ok(offerMissionsCount);
         }
+
+
         //returns how many n mission missions is
         [HttpGet("SumOfInMissionMissions")]
         public async Task<IActionResult> SumOfInMissionMissions()
@@ -63,6 +71,8 @@ namespace MosadAPIServer.Controllers
             var inMissionCount = await _context.Missions.Where(mission => mission.Status == MissionStatus.Status.InMission.ToString()).CountAsync();
             return Ok(inMissionCount);
         }
+
+
         //returns how many finish missions is
         [HttpGet("SumOfFinishMissions")]
         public async Task<IActionResult> SumOfFinishMissions()
@@ -70,7 +80,9 @@ namespace MosadAPIServer.Controllers
             var finishMissionsCount = await _context.Missions.Where(mission => mission.Status == MissionStatus.Status.Finish.ToString()).CountAsync();
             return Ok(finishMissionsCount);
         }
-        //
+
+
+        // פונקציה זאת מחזירה את כמות החיסולים לפי סוכן
         [HttpGet("AmountOfKills/{id}")]
         public async Task<IActionResult> AmountOfKills(int id)
         {
@@ -85,7 +97,9 @@ namespace MosadAPIServer.Controllers
             }
             return Ok(killsCount);  
         }
-        //
+
+
+        // פונקציה זאת מחזירה כמה זמן נשאר עד לחיסול
 		[HttpGet("TimeLeft/{id}")]
 		public async Task<IActionResult> TimeLeft(int id)
 		{
@@ -93,6 +107,8 @@ namespace MosadAPIServer.Controllers
             var timeLeft = mission.TimeLeft;
 			return Ok(timeLeft);
 		}
+
+
 		//--Get One Missions
 		[HttpGet("Get/{id}")]
 		public async Task<IActionResult> GetMissionById(int id)

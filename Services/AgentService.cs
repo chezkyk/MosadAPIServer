@@ -15,6 +15,7 @@ namespace MosadAPIServer.Services
             _context = context;
         }
 
+
         // פונקציה זאת יוצרת סוכן ומוסיפה אותו ל DB
         public async Task<Agent> CreateAgent(Agent agent)
         {
@@ -32,6 +33,7 @@ namespace MosadAPIServer.Services
             return await _context.Agents.ToListAsync();
         }
 
+
         // פונקציה זאת מעדכת מיקום של סוכן
         public async Task<Agent> UpdateLocation(int id, Location location)
         {
@@ -48,6 +50,8 @@ namespace MosadAPIServer.Services
             await _context.SaveChangesAsync();// שמירת השינויים
             return agent;
         }
+
+
         // פונקציה זאת מעדכנת כיוון 
         public async Task<Agent> UpdateDirection(Agent agent, string direction)
         {
@@ -58,24 +62,33 @@ namespace MosadAPIServer.Services
             await _context.SaveChangesAsync();// שמירת השינויים
             return agent;
         }
+
+
+        // פונקציה זאת בודקת אפשרות ציוות ומצוות סוכן ומטרה
         public async Task FindMissions(Agent agent)
         {
+            // הכנסת כל המטרות לרשימה
             var list = await _context.Targets.ToArrayAsync();
-                                                               
+             // ריצה על הרשימה                                                  
             foreach (Target target in list)
             {
+                // בדיקה שמטרה עדיין לא חוסלה 
                 if (target.Status == TargetStatus.Status.Alive.ToString()) 
                 {
+                    // בדיקה אם המרחק מספיק קרוב
                     if (MissionService.IfMission(agent, target)) 
                     {
+                        // יצירת המשימה לאחר כל האימותים
                         Mission mission = MissionService.CreateMission(agent, target); //יצירת משימה
-                        _context.Missions.Add(mission); //הוספה למסד נתונים
+                        _context.Missions.Add(mission); // הוספה ל DB
                         _context.SaveChanges();
                     }
                 }
             }
             return;
         }
+
+
 		public async Task<bool> IfNotTarget(int? id)
 		{
             // שולף ךתוך מערך את כל המשימות שהמטרה נמצאת שם

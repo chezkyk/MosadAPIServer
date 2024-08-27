@@ -23,14 +23,22 @@ namespace MosadAPIServer.Controllers
             _missionService = missionService;
             _context = context;
         }
+
+
         //--Create Agent--
+        // הפונקציה הזאת מקבלת סוכן ומוסיפה אותו למסד הנתונים
+
         [HttpPost]
         public async Task<IActionResult> CreateAgent(Agent agent)
         {
             var createdAgent = await _agentService.CreateAgent(agent);
             return StatusCode(StatusCodes.Status201Created, agent);
         }
+
+
         //--Get All Agents
+        // פונקציה זאת מחזירה את כל הסוכניפ
+
         [HttpGet]
         public async Task<IActionResult> GetAllAgents()
         {
@@ -38,7 +46,11 @@ namespace MosadAPIServer.Controllers
             var agents = await _agentService.GetAllAgents();
             return StatusCode(StatusCodes.Status200OK, agents);
         }
+
+
         //-- Update Location --
+        // פונקציה זאת מעדכנת את מיקום הסוכן
+
         [HttpPut("{id}/pin")]
         public async Task<IActionResult> UpdateLocation(int id,[FromBody] Location location)
         {
@@ -48,7 +60,11 @@ namespace MosadAPIServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+
         //--Update Direction--
+        // פונקציה זאת מעדכנת את הכיוון שהסוכן צריך ללכת
+
         [HttpPut("{id}/move")]
         public async Task<IActionResult> UpdateDirection(int id, [FromBody] Dictionary<string, string> direction)
         {
@@ -59,22 +75,30 @@ namespace MosadAPIServer.Controllers
             return Ok();
         }
 
+
         //returns how active many agents is
         [HttpGet("SumOfActiveAgents")]
+
         public async Task<IActionResult> SumOfActiveAgents()
         {
             var activeAgentsCount = await _context.Agents.Where(agent => agent.Status == AgentStatus.Status.Active.ToString()).CountAsync();
             return Ok(activeAgentsCount);
         }
+
+
         //returns how not active many agents is
         [HttpGet("SumOfNotActiveAgents")]
+
         public async Task<IActionResult> SumOfNotActiveAgents()
         {
             var notActiveAgentsCount = await _context.Agents.Where(agent => agent.Status == AgentStatus.Status.NotActiv.ToString()).CountAsync();
             return Ok(notActiveAgentsCount);
         }
-        //
+
+
+        //פונקציה זאת מחזירה את מספר הסוכנים שאפשר לצוות בפועל למשימה
         [HttpGet("SumOfGoodActiveAgents")]
+
         public async Task<IActionResult> SumOfGoodActiveAgents()
         {
             var notActiveAgents = await _context.Agents
@@ -101,12 +125,6 @@ namespace MosadAPIServer.Controllers
             }
             return StatusCode(200, new { goodActiveList = goodActiveList.Count(), goodTargetscount = goodTargetscount });
         }
-
-
-
-
-        //Help function
-        
     }
 }
 
